@@ -1,0 +1,9 @@
+[Unit]
+Description=Backup horário do SQLite do Shiftgate
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+
+[Install]
+WantedBy=timers.target

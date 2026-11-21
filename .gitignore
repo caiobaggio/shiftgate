@@ -1,0 +1,10 @@
+node_modules/
+dist/
+data/
+.env
+*.pem
+shiftgate-tunnel.txt
+*.sqlite
+*.sqlite-*
+.DS_Store
+.wrangler/

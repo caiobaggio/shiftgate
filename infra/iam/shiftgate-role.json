@@ -1,0 +1,60 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "StartStopTagged",
+      "Effect": "Allow",
+      "Action": ["ec2:StartInstances", "ec2:StopInstances"],
+      "Resource": "arn:aws:ec2:us-east-2:792080666439:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/shiftgate:managed": "true",
+          "aws:ResourceTag/shiftgate:allow-stop": "true"
+        }
+      }
+    },
+    {
+      "Sid": "Describe",
+      "Effect": "Allow",
+      "Action": ["ec2:DescribeInstances", "ec2:DescribeInstanceStatus", "ec2:DescribeTags"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SsmDocument",
+      "Effect": "Allow",
+      "Action": ["ssm:SendCommand"],
+      "Resource": "arn:aws:ssm:us-east-2:792080666439:document/shiftgate-service-control"
+    },
+    {
+      "Sid": "SsmTaggedInstances",
+      "Effect": "Allow",
+      "Action": ["ssm:SendCommand"],
+      "Resource": "arn:aws:ec2:us-east-2:792080666439:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/shiftgate:managed": "true",
+          "aws:ResourceTag/shiftgate:allow-stop": "true"
+        }
+      }
+    },
+    {
+      "Sid": "SsmRead",
+      "Effect": "Allow",
+      "Action": ["ssm:GetCommandInvocation", "ssm:ListCommandInvocations", "ssm:DescribeInstanceInformation"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyControlPlane",
+      "Effect": "Deny",
+      "Action": ["ec2:StopInstances", "ec2:StartInstances", "ec2:TerminateInstances", "ec2:RebootInstances", "ssm:SendCommand"],
+      "Resource": "*",
+      "Condition": { "StringEquals": { "aws:ResourceTag/shiftgate:role": "control-plane" } }
+    },
+    {
+      "Sid": "DenyTerminateAlways",
+      "Effect": "Deny",
+      "Action": ["ec2:TerminateInstances"],
+      "Resource": "*"
+    }
+  ]
+}

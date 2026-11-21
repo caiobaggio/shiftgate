@@ -1,0 +1,18 @@
+name = "shiftgate-edge"
+main = "src/index.ts"
+compatibility_date = "2026-10-19"
+
+# O segredo EDGE_SHARED_SECRET entra com `wrangler secret put`.
+# SHIFTGATE_API_BASE é o hostname do plano de controle, não a lista de aplicações.
+routes = [
+  { pattern = "api.mundomoveis.tech/*", zone_name = "mundomoveis.tech" },
+  { pattern = "backend.mundomoveis.tech/*", zone_name = "mundomoveis.tech" },
+  { pattern = "capas.mundomoveis.tech/*", zone_name = "mundomoveis.tech" },
+  { pattern = "commercebridge-staging.mundomoveis.tech/*", zone_name = "mundomoveis.tech" },
+  { pattern = "dashboard.mundomoveis.tech/*", zone_name = "mundomoveis.tech" },
+  { pattern = "fluxo-scripts.mundomoveis.tech/*", zone_name = "mundomoveis.tech" },
+  { pattern = "vortex-fiscal.mundomoveis.tech/*", zone_name = "mundomoveis.tech" }
+]
+
+[vars]
+SHIFTGATE_API_BASE = "https://shiftgate-edge.mundomoveis.tech"

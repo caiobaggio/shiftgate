@@ -1,0 +1,198 @@
+{
+  "source": "Playbook Shiftgate, seção 19. Leitura de 19/10/2026. Não é a frota fechada.",
+  "note": "Instance id em branco espera o describe. Não copiar o id do ERP para outra linha. Importar não cria registro sozinho.",
+  "candidates": [
+    {
+      "slug": "erp-v2",
+      "display_name": "ERP V2",
+      "aws_instance_id": "i-0af76df96c4e714b6",
+      "aws_region": "us-east-2",
+      "region_proven": true,
+      "has_elastic_ip": true,
+      "origin_host": "18.117.69.26",
+      "address_in_file": "18.117.69.26",
+      "proof": "backend/deploy/ec2.ps1 e erp.sh. EIP permanece no poweroff. Nginx e PM2 erp-v2-backend.",
+      "hostnames": [
+        {
+          "hostname": "backend.mundomoveis.tech",
+          "health_url": "http://18.117.69.26/health",
+          "wake_paths": ["POST /sessions"],
+          "note": "Health comprovado na instância é http://127.0.0.1:3333/health. A URL pública é hipótese para o nano."
+        }
+      ],
+      "workloads": [
+        { "slug": "erp-backend", "display_name": "ERP V2 backend", "runtime": "pm2", "unit_name": "erp-v2-backend", "port": 3333, "hostname": "backend.mundomoveis.tech" }
+      ]
+    },
+    {
+      "slug": "dashboard",
+      "display_name": "Dashboard",
+      "aws_instance_id": null,
+      "aws_region": null,
+      "region_hint": "us-east-2",
+      "has_elastic_ip": null,
+      "origin_host": "3.19.149.106",
+      "address_in_file": "3.19.149.106",
+      "proof": "dashboard ec2_deploy_runbook.md preenche EC2_PUBLIC_IP. Usuário ubuntu. Não prova EIP.",
+      "hostnames": [
+        {
+          "hostname": "dashboard.mundomoveis.tech",
+          "health_url": "http://3.19.149.106/health",
+          "wake_paths": [],
+          "note": "A allowlist de login ainda não está no disco. O operador preenche."
+        }
+      ],
+      "workloads": [
+        { "slug": "dashboard-api", "display_name": "Dashboard API", "runtime": "systemd", "unit_name": "dashboard-backend", "port": 8000, "hostname": "dashboard.mundomoveis.tech" },
+        { "slug": "dashboard-web", "display_name": "Dashboard web", "runtime": "systemd", "unit_name": "nginx", "port": 443, "hostname": "dashboard.mundomoveis.tech" }
+      ]
+    },
+    {
+      "slug": "ops-line",
+      "display_name": "Ops Line",
+      "aws_instance_id": null,
+      "aws_region": null,
+      "region_hint": "us-east-2",
+      "has_elastic_ip": null,
+      "origin_host": "18.225.52.232",
+      "address_in_file": "18.225.52.232",
+      "proof": "deploy-ec2.ps1 e deploy/ec2/README.md. DNS citado na HostGator. Sem Worker, a fase 2 não publica nesse hostname.",
+      "hostnames": [
+        {
+          "hostname": "api.mundomoveis.tech",
+          "health_url": "http://18.225.52.232/health",
+          "wake_paths": [],
+          "note": "Entra no wake só depois que o Worker estiver na frente."
+        }
+      ],
+      "workloads": [
+        { "slug": "ops-line-api", "display_name": "Ops Line API", "runtime": "systemd", "unit_name": "ops-line-api", "port": 8000, "hostname": "api.mundomoveis.tech" }
+      ]
+    },
+    {
+      "slug": "hermes",
+      "display_name": "Hermes",
+      "aws_instance_id": null,
+      "aws_region": null,
+      "region_hint": "us-east-2",
+      "has_elastic_ip": false,
+      "origin_host": "3.138.192.206",
+      "address_in_file": "3.138.192.206",
+      "proof": "deadline-manager README e remote_deploy.ps1. O backlog pede EIP porque o IPv4 muda. Sem EIP o wake não usa este endereço.",
+      "hostnames": [],
+      "workloads": [
+        { "slug": "hermes-api", "display_name": "Hermes API", "runtime": "systemd", "unit_name": "hermes-api", "port": 8000, "hostname": null },
+        { "slug": "hermes-worker", "display_name": "Hermes worker", "runtime": "systemd", "unit_name": "hermes-worker", "port": null, "hostname": null }
+      ]
+    },
+    {
+      "slug": "commerce-bridge",
+      "display_name": "Commerce Bridge staging",
+      "aws_instance_id": null,
+      "aws_region": null,
+      "region_hint": "us-east-2",
+      "has_elastic_ip": null,
+      "origin_host": "3.19.20.146",
+      "address_in_file": "3.19.20.146",
+      "proof": "README de staging chama o endereço de Host/EIP. Compose na mesma EC2: backend, worker e frontend. RDS fora da instância.",
+      "hostnames": [
+        {
+          "hostname": "commercebridge-staging.mundomoveis.tech",
+          "health_url": "http://3.19.20.146/health",
+          "wake_paths": [],
+          "note": "EIP é afirmação do README, não describe."
+        }
+      ],
+      "workloads": [
+        { "slug": "commerce-api", "display_name": "Commerce API", "runtime": "docker", "unit_name": "backend", "port": 8000, "hostname": "commercebridge-staging.mundomoveis.tech" },
+        { "slug": "commerce-worker", "display_name": "Commerce worker", "runtime": "docker", "unit_name": "worker", "port": null, "hostname": null },
+        { "slug": "commerce-web", "display_name": "Commerce web", "runtime": "docker", "unit_name": "frontend", "port": 3000, "hostname": "commercebridge-staging.mundomoveis.tech" }
+      ]
+    },
+    {
+      "slug": "fluxo-scripts",
+      "display_name": "Fluxo Scripts",
+      "aws_instance_id": null,
+      "aws_region": null,
+      "region_hint": "us-east-2",
+      "has_elastic_ip": null,
+      "origin_host": null,
+      "address_in_file": null,
+      "proof": "Uma EC2, um turno. Units fluxo-scripts, fluxo-ppw-api e fluxo-ppw-web. Nginx encaminha / para 8787 e /ppw para 3000. Usuário ubuntu.",
+      "hostnames": [
+        {
+          "hostname": "fluxo-scripts.mundomoveis.tech",
+          "health_url": "http://127.0.0.1:8787/health",
+          "wake_paths": [],
+          "note": "Trocar o health pela origem estável quando o describe der o endereço."
+        }
+      ],
+      "workloads": [
+        { "slug": "fluxo-painel", "display_name": "Fluxo painel", "runtime": "systemd", "unit_name": "fluxo-scripts", "port": 8787, "hostname": "fluxo-scripts.mundomoveis.tech" },
+        { "slug": "fluxo-ppw-api", "display_name": "Fluxo PPW API", "runtime": "systemd", "unit_name": "fluxo-ppw-api", "port": 8001, "hostname": "fluxo-scripts.mundomoveis.tech" },
+        { "slug": "fluxo-ppw-web", "display_name": "Fluxo PPW web", "runtime": "systemd", "unit_name": "fluxo-ppw-web", "port": 3000, "hostname": "fluxo-scripts.mundomoveis.tech" }
+      ]
+    },
+    {
+      "slug": "fluxo-capas",
+      "display_name": "Fluxo Capas",
+      "aws_instance_id": null,
+      "aws_region": null,
+      "region_hint": "us-east-2",
+      "has_elastic_ip": null,
+      "origin_host": null,
+      "address_in_file": null,
+      "proof": "Path /var/www/fluxo-capas-costura e hostname capas.mundomoveis.tech. Sem instance id no disco.",
+      "hostnames": [
+        {
+          "hostname": "capas.mundomoveis.tech",
+          "health_url": "http://127.0.0.1:3333/health",
+          "wake_paths": [],
+          "note": "A porta no doc de deploy é 3333; o .env local diz 3334. Confirmar no discover."
+        }
+      ],
+      "workloads": [
+        { "slug": "fluxo-capas-api", "display_name": "Capas API", "runtime": "systemd", "unit_name": "fluxo-capas-api", "port": 3333, "hostname": "capas.mundomoveis.tech" },
+        { "slug": "fluxo-capas-web", "display_name": "Capas web", "runtime": "systemd", "unit_name": "nginx", "port": 443, "hostname": "capas.mundomoveis.tech" }
+      ]
+    },
+    {
+      "slug": "bom-sync",
+      "display_name": "BOM Sync",
+      "aws_instance_id": null,
+      "aws_region": null,
+      "region_hint": "us-east-2",
+      "has_elastic_ip": null,
+      "origin_host": null,
+      "address_in_file": "ip-172-31-22-208",
+      "proof": "Hostname interno num transcript de retornos.ec2.md. App em /opt/bom-sync/app. dem.mundomoveis.tech. Timers curtos: o turno desta ficha é que decide a noite.",
+      "hostnames": [
+        {
+          "hostname": "dem.mundomoveis.tech",
+          "health_url": "http://127.0.0.1:8088/health",
+          "wake_paths": [],
+          "note": "O endereço interno não é origem de wake."
+        }
+      ],
+      "workloads": [
+        { "slug": "bom-web", "display_name": "BOM web", "runtime": "systemd", "unit_name": "bom-data-export-web", "port": 8088, "hostname": "dem.mundomoveis.tech" },
+        { "slug": "bom-timers", "display_name": "BOM timers", "runtime": "systemd", "unit_name": "bom-sync", "port": null, "hostname": null }
+      ]
+    },
+    {
+      "slug": "vortex-fiscal",
+      "display_name": "Vortex Fiscal",
+      "aws_instance_id": null,
+      "aws_region": null,
+      "region_hint": "us-east-2",
+      "has_elastic_ip": null,
+      "origin_host": null,
+      "address_in_file": "1.2.3.4",
+      "proof": "O README tem placeholder 1.2.3.4. O script de deploy existe; o host real não está no repo. Caddy é infra.",
+      "hostnames": [],
+      "workloads": [
+        { "slug": "vortex", "display_name": "Vortex", "runtime": "docker", "unit_name": "api", "port": 3001, "hostname": null }
+      ]
+    }
+  ]
+}

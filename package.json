@@ -1,0 +1,25 @@
+{
+  "name": "shiftgate",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "apps/edge",
+    "packages/contracts"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c yellow,cyan \"npm run dev -w @shiftgate/api\" \"npm run dev -w @shiftgate/web\"",
+    "test": "vitest run",
+    "start": "npm run start -w @shiftgate/api",
+    "build": "npm run build -w @shiftgate/web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

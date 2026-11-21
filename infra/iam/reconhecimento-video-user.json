@@ -1,0 +1,212 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DescribeFleet",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceStatus",
+        "ec2:DescribeTags",
+        "ssm:DescribeInstanceInformation",
+        "ssm:DescribeInstanceProperties",
+        "ssm:GetConnectionStatus",
+        "ssm:DescribeSessions"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ShellOnThisInstance",
+      "Effect": "Allow",
+      "Action": "ssm:StartSession",
+      "Resource": "arn:aws:ec2:us-east-2:792080666439:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "ssm:resourceTag/shiftgate:host": "reconhecimento-video"
+        }
+      }
+    },
+    {
+      "Sid": "ShellDocument",
+      "Effect": "Allow",
+      "Action": "ssm:StartSession",
+      "Resource": [
+        "arn:aws:ssm:us-east-2::document/SSM-SessionManagerRunShell",
+        "arn:aws:ssm:us-east-2:792080666439:document/SSM-SessionManagerRunShell"
+      ]
+    },
+    {
+      "Sid": "OwnSessions",
+      "Effect": "Allow",
+      "Action": ["ssm:TerminateSession", "ssm:ResumeSession"],
+      "Resource": "arn:aws:ssm:*:*:session/${aws:userid}-*"
+    },
+    {
+      "Sid": "PowerThisInstance",
+      "Effect": "Allow",
+      "Action": ["ec2:StartInstances", "ec2:StopInstances", "ec2:RebootInstances"],
+      "Resource": "arn:aws:ec2:us-east-2:792080666439:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:ResourceTag/shiftgate:host": "reconhecimento-video"
+        }
+      }
+    },
+    {
+      "Sid": "SelfPasswordAndMfa",
+      "Effect": "Allow",
+      "Action": [
+        "iam:ChangePassword",
+        "iam:GetUser",
+        "iam:ListMFADevices",
+        "iam:ListVirtualMFADevices",
+        "iam:CreateVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:ResyncMFADevice"
+      ],
+      "Resource": [
+        "arn:aws:iam::792080666439:user/${aws:username}",
+        "arn:aws:iam::792080666439:mfa/${aws:username}"
+      ]
+    },
+    {
+      "Sid": "ViewPasswordPolicy",
+      "Effect": "Allow",
+      "Action": "iam:GetAccountPasswordPolicy",
+      "Resource": "*"
+    },
+    {
+      "Sid": "ListBuckets",
+      "Effect": "Allow",
+      "Action": ["s3:ListAllMyBuckets", "s3:GetAccountPublicAccessBlock"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CreateOhioBuckets",
+      "Effect": "Allow",
+      "Action": "s3:CreateBucket",
+      "Resource": "arn:aws:s3:::reconhecimento-video-*",
+      "Condition": {
+        "StringEquals": {
+          "s3:LocationConstraint": "us-east-2"
+        }
+      }
+    },
+    {
+      "Sid": "ManageOwnBuckets",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetBucketVersioning",
+        "s3:PutBucketVersioning",
+        "s3:GetBucketTagging",
+        "s3:PutBucketTagging",
+        "s3:GetEncryptionConfiguration",
+        "s3:PutEncryptionConfiguration",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:GetBucketOwnershipControls",
+        "s3:PutBucketOwnershipControls",
+        "s3:DeleteBucket"
+      ],
+      "Resource": "arn:aws:s3:::reconhecimento-video-*"
+    },
+    {
+      "Sid": "ManageOwnObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:AbortMultipartUpload",
+        "s3:ListMultipartUploadParts"
+      ],
+      "Resource": "arn:aws:s3:::reconhecimento-video-*/*"
+    },
+    {
+      "Sid": "DenyPublicAcl",
+      "Effect": "Deny",
+      "Action": ["s3:PutBucketAcl", "s3:PutObjectAcl"],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-acl": ["public-read", "public-read-write", "authenticated-read"]
+        }
+      }
+    },
+    {
+      "Sid": "DenySessionOnOtherInstances",
+      "Effect": "Deny",
+      "Action": "ssm:StartSession",
+      "Resource": "arn:aws:ec2:*:792080666439:instance/*",
+      "Condition": {
+        "StringNotEquals": {
+          "ssm:resourceTag/shiftgate:host": "reconhecimento-video"
+        }
+      }
+    },
+    {
+      "Sid": "DenyOtherSessionDocuments",
+      "Effect": "Deny",
+      "Action": "ssm:StartSession",
+      "NotResource": [
+        "arn:aws:ec2:us-east-2:792080666439:instance/*",
+        "arn:aws:ssm:us-east-2::document/SSM-SessionManagerRunShell",
+        "arn:aws:ssm:us-east-2:792080666439:document/SSM-SessionManagerRunShell"
+      ]
+    },
+    {
+      "Sid": "DenyRemoteCommands",
+      "Effect": "Deny",
+      "Action": ["ssm:SendCommand", "ssm:StartAutomationExecution"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyPowerOnOtherInstances",
+      "Effect": "Deny",
+      "Action": ["ec2:StartInstances", "ec2:StopInstances", "ec2:RebootInstances"],
+      "Resource": "arn:aws:ec2:*:792080666439:instance/*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:ResourceTag/shiftgate:host": "reconhecimento-video"
+        }
+      }
+    },
+    {
+      "Sid": "DenyLaunchTerminateAndRetag",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:RunInstances",
+        "ec2:TerminateInstances",
+        "ec2:CreateTags",
+        "ec2:DeleteTags",
+        "ec2:ModifyInstanceAttribute",
+        "ec2:AssociateIamInstanceProfile",
+        "ec2:ReplaceIamInstanceProfileAssociation",
+        "ec2:DisassociateIamInstanceProfile"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyWithoutMfa",
+      "Effect": "Deny",
+      "NotAction": [
+        "iam:ChangePassword",
+        "iam:GetAccountPasswordPolicy",
+        "iam:GetUser",
+        "iam:ListMFADevices",
+        "iam:ListVirtualMFADevices",
+        "iam:CreateVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:ResyncMFADevice"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "BoolIfExists": {
+          "aws:MultiFactorAuthPresent": "false"
+        }
+      }
+    }
+  ]
+}

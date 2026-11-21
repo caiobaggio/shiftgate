@@ -1,0 +1,23 @@
+[Unit]
+Description=Shiftgate control plane
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=shiftgate
+Group=shiftgate
+WorkingDirectory=/opt/shiftgate
+EnvironmentFile=/etc/shiftgate/shiftgate.env
+ExecStart=/usr/bin/node --experimental-strip-types /opt/shiftgate/apps/api/src/index.ts
+Restart=always
+RestartSec=2
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/shiftgate
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

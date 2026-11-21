@@ -1,0 +1,9 @@
+[Unit]
+Description=Copia o SQLite do Shiftgate para o S3 privado
+
+[Service]
+Type=oneshot
+User=shiftgate
+Group=shiftgate
+EnvironmentFile=/etc/shiftgate/shiftgate.env
+ExecStart=/opt/shiftgate/infra/systemd/backup.sh

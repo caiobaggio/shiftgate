@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "2.2",
+  "description": "Shiftgate controla um workload pelo slug. Sem shell livre.",
+  "parameters": {
+    "action": {
+      "type": "String",
+      "allowedValues": ["start", "stop", "status"]
+    },
+    "slug": {
+      "type": "String",
+      "default": "",
+      "allowedPattern": "^[a-z0-9-]{0,64}$"
+    }
+  },
+  "mainSteps": [
+    {
+      "action": "aws:runShellScript",
+      "name": "control",
+      "inputs": {
+        "timeoutSeconds": "60",
+        "runCommand": [
+          "#!/bin/bash",
+          "set -euo pipefail",
+          "ACTION='{{ action }}'",
+          "SLUG='{{ slug }}'",
+          "if ! [[ \"$ACTION\" =~ ^(start|stop|status)$ ]]; then echo '{\"error\":\"action\"}' >&2; exit 2; fi",
+          "if ! [[ \"$SLUG\" =~ ^[a-z0-9-]{0,64}$ ]]; then echo '{\"error\":\"slug\"}' >&2; exit 2; fi",
+          "json_escape() { python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'; }",
+          "if [[ \"$ACTION\" == status ]]; then",
+          "  systemd=$(systemctl list-units --type=service --state=running --no-legend --plain 2>/dev/null | awk '{print $1}' | sed 's/\\.service$//' || true)",
+          "  pm2=''",
+          "  if command -v pm2 >/dev/null 2>&1; then pm2=$(pm2 jlist 2>/dev/null | python3 -c 'import json,sys; data=json.load(sys.stdin); print(\"\\n\".join(item.get(\"name\",\"\") for item in data))' || true); fi",
+          "  docker=''",
+          "  if command -v docker >/dev/null 2>&1; then docker=$(docker ps --format json 2>/dev/null | python3 -c 'import json,sys; names=[]\nfor line in sys.stdin:\n line=line.strip()\n if not line: continue\n item=json.loads(line)\n name=item.get(\"Names\") or \"\"\n if name: names.append(name)\nprint(\"\\n\".join(names))' || true); fi",
+          "  python3 - \"$systemd\" \"$pm2\" \"$docker\" <<'PY'",
+          "import json, sys",
+          "def lines(raw):",
+          "    return [line.strip() for line in raw.splitlines() if line.strip()]",
+          "print(json.dumps({\"systemd\": lines(sys.argv[1]), \"pm2\": lines(sys.argv[2]), \"docker\": lines(sys.argv[3])}))",
+          "PY",
+          "  exit 0",
+          "fi",
+          "if [[ -z \"$SLUG\" ]]; then echo '{\"error\":\"slug\"}' >&2; exit 2; fi",
+          "FILE=\"/etc/shiftgate/apps/${SLUG}.env\"",
+          "if [[ ! -f \"$FILE\" ]]; then echo '{\"error\":\"unknown slug\"}' >&2; exit 3; fi",
+          "RUNTIME=$(grep -E '^RUNTIME=' \"$FILE\" | head -1 | cut -d= -f2- | tr -d '[:space:]')",
+          "UNIT=$(grep -E '^UNIT=' \"$FILE\" | head -1 | cut -d= -f2- | tr -d '[:space:]')",
+          "COMPOSE_DIR=$(grep -E '^COMPOSE_DIR=' \"$FILE\" | head -1 | cut -d= -f2- | tr -d '[:space:]')",
+          "if ! [[ \"$RUNTIME\" =~ ^(pm2|systemd|docker|node)$ ]]; then echo '{\"error\":\"runtime\"}' >&2; exit 3; fi",
+          "if ! [[ \"$UNIT\" =~ ^[A-Za-z0-9_.:@/-]+$ ]]; then echo '{\"error\":\"unit\"}' >&2; exit 3; fi",
+          "case \"$RUNTIME\" in",
+          "  systemd|node) systemctl \"$ACTION\" \"$UNIT\" ;;",
+          "  pm2) pm2 \"$ACTION\" \"$UNIT\" ;;",
+          "  docker)",
+          "    if [[ -n \"$COMPOSE_DIR\" ]]; then docker compose --project-directory \"$COMPOSE_DIR\" \"$ACTION\" \"$UNIT\"; else docker \"$ACTION\" \"$UNIT\"; fi",
+          "    ;;",
+          "esac",
+          "echo \"{\\\"ok\\\":true,\\\"action\\\":\\\"$ACTION\\\",\\\"slug\\\":\\\"$SLUG\\\"}\""
+        ]
+      }
+    }
+  ]
+}

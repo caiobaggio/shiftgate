@@ -1,0 +1,47 @@
+{
+  "note": "Só o simulador local. Não é a conta AWS e não autoriza StopInstances em produção.",
+  "instances": [
+    {
+      "instanceId": "i-0af76df96c4e714b6",
+      "region": "us-east-2",
+      "power": "running",
+      "publicIp": "18.117.69.26",
+      "ssmOnline": true,
+      "tags": {
+        "shiftgate:managed": "true",
+        "shiftgate:allow-stop": "true",
+        "shiftgate:role": "workload",
+        "shiftgate:host": "erp-v2"
+      },
+      "observed": { "systemd": ["nginx.service"], "pm2": ["erp-v2-backend"], "docker": [] }
+    },
+    {
+      "instanceId": "i-0aaaaaaa000000001",
+      "region": "us-east-2",
+      "power": "running",
+      "publicIp": "203.0.113.10",
+      "ssmOnline": true,
+      "tags": {
+        "shiftgate:managed": "true",
+        "shiftgate:allow-stop": "true",
+        "shiftgate:role": "workload",
+        "shiftgate:host": "ensaio-a"
+      },
+      "observed": { "systemd": ["nginx.service", "ensaio-a-api.service"], "pm2": [], "docker": [] }
+    },
+    {
+      "instanceId": "i-0bbbbbbb000000002",
+      "region": "us-east-2",
+      "power": "stopped",
+      "publicIp": "203.0.113.11",
+      "ssmOnline": true,
+      "tags": {
+        "shiftgate:managed": "true",
+        "shiftgate:allow-stop": "true",
+        "shiftgate:role": "workload",
+        "shiftgate:host": "ensaio-b"
+      },
+      "observed": { "systemd": ["nginx.service", "ensaio-b-api.service"], "pm2": [], "docker": [] }
+    }
+  ]
+}
